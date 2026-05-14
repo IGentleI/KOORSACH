@@ -1,0 +1,43 @@
+{% extends 'helloapp/base.html' %}
+{% block title %}{% if is_edit %}Редактировать объявление{% else %}Добавить объявление{% endif %}{% endblock %}
+{% block content %}
+<section class="page-title">
+    <h1>{% if is_edit %}Редактировать объявление{% else %}Добавить объявление{% endif %}</h1>
+    <p>После сохранения объявление отправляется модератору. Это демонстрирует разграничение прав пользователей.</p>
+</section>
+
+<form method="post" enctype="multipart/form-data" class="card form-card" data-car-models='{{ car_models_json|escapejs }}'>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="message error">{{ form.non_field_errors }}</div>{% endif %}
+    <h2>Данные продавца</h2>
+    <div class="form-grid">
+        <div>{{ form.seller_last_name.label_tag }} {{ form.seller_last_name }} {{ form.seller_last_name.errors }}</div>
+        <div>{{ form.seller_first_name.label_tag }} {{ form.seller_first_name }} {{ form.seller_first_name.errors }}</div>
+        <div>{{ form.seller_middle_name.label_tag }} {{ form.seller_middle_name }} {{ form.seller_middle_name.errors }}</div>
+        <div data-ajax-field data-url="{% url 'helloapp:ajax_check_phone' %}">{{ form.seller_phone.label_tag }} {{ form.seller_phone }} <small class="field-hint"></small> {{ form.seller_phone.errors }}</div>
+        <div data-ajax-field data-url="{% url 'helloapp:ajax_check_email' %}">{{ form.seller_email.label_tag }} {{ form.seller_email }} <small class="field-hint"></small> {{ form.seller_email.errors }}</div>
+        <div>{{ form.seller_city.label_tag }} {{ form.seller_city }} {{ form.seller_city.errors }}</div>
+    </div>
+
+    <h2>Автомобиль</h2>
+    <div class="form-grid">
+        <div>{{ form.brand.label_tag }} {{ form.brand }} {{ form.brand.errors }}</div>
+        <div>{{ form.model.label_tag }} {{ form.model }} {{ form.model.errors }}</div>
+        <div>{{ form.year.label_tag }} {{ form.year }} {{ form.year.errors }}</div>
+        <div>{{ form.price.label_tag }} {{ form.price }} {{ form.price.errors }}</div>
+        <div>{{ form.mileage.label_tag }} {{ form.mileage }} {{ form.mileage.errors }}</div>
+        <div>{{ form.engine_volume.label_tag }} {{ form.engine_volume }} {{ form.engine_volume.errors }}</div>
+        <div>{{ form.transmission.label_tag }} {{ form.transmission }} {{ form.transmission.errors }}</div>
+        <div>{{ form.color.label_tag }} {{ form.color }} {{ form.color.errors }}</div>
+        <div>{{ form.car_image.label_tag }} {{ form.car_image }} {{ form.car_image.errors }}</div>
+    </div>
+    <div class="full-field">{{ form.description.label_tag }} {{ form.description }} {{ form.description.errors }}</div>
+    <div class="full-field check-row">{{ form.is_negotiable }} {{ form.is_negotiable.label_tag }}</div>
+    <div class="full-field tags-box">{{ form.tags.label_tag }} {{ form.tags }} {{ form.tags.errors }}</div>
+
+    <div class="form-actions">
+        <button class="button" type="submit">Сохранить</button>
+        <a class="button button-outline" href="{% url 'helloapp:car_ad_list' %}">Отмена</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'helloapp/base.html' %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+<section class="card narrow">
+    <h1>Вход</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="button" type="submit">Войти</button>
+    </form>
+    <p class="muted">Нет аккаунта? <a href="{% url 'helloapp:register' %}">Зарегистрируйтесь</a>.</p>
+</section>
+{% endblock %}

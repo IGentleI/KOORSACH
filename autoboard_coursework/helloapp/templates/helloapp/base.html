@@ -1,0 +1,49 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}AutoBoard{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'helloapp/css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<header class="site-header">
+    <a class="logo" href="{% url 'helloapp:index' %}">AutoBoard</a>
+    <button class="burger" type="button" aria-label="Меню" data-menu-toggle>☰</button>
+    <nav class="main-nav" data-menu>
+        <a href="{% url 'helloapp:car_ad_list' %}">Каталог</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'helloapp:profile' %}">Личный кабинет</a>
+            {% if is_seller %}<a href="{% url 'helloapp:car_ad_form' %}">Добавить объявление</a>{% endif %}
+            {% if is_moderator %}<a href="{% url 'helloapp:moderation_list' %}">Модерация</a>{% endif %}
+            <form method="post" action="{% url 'helloapp:logout' %}" class="inline-form">
+                {% csrf_token %}
+                <button class="link-button" type="submit">Выйти</button>
+            </form>
+        {% else %}
+            <a href="{% url 'helloapp:login' %}">Войти</a>
+            <a class="button button-small" href="{% url 'helloapp:register' %}">Регистрация</a>
+        {% endif %}
+    </nav>
+</header>
+
+<main class="container">
+    {% if messages %}
+        <section class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </section>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+    <p>AutoBoard — курсовая работа по технологиям программирования на Django.</p>
+</footer>
+<script src="{% static 'helloapp/js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

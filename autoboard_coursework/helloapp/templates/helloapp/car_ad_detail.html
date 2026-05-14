@@ -1,0 +1,60 @@
+{% extends 'helloapp/base.html' %}
+{% block title %}{{ car_ad }}{% endblock %}
+{% block content %}
+<article class="detail-layout">
+    <section class="detail-media">
+        {% if main_image and main_image.image %}
+            <img src="{{ main_image.image.url }}" alt="{{ car_ad }}">
+        {% else %}
+            <div class="placeholder-image big">{{ car_ad.brand|first }}{{ car_ad.model|first }}</div>
+        {% endif %}
+        <div class="thumbs">
+            {% for image in images %}
+                {% if image.image %}<img src="{{ image.image.url }}" alt="{{ image.caption|default:car_ad }}">{% endif %}
+            {% endfor %}
+        </div>
+    </section>
+    <section class="detail-info card">
+        <div class="status-row">
+            <span class="badge">{{ car_ad.get_status_display }}</span>
+            <span class="muted">Просмотров: {{ car_ad.views_count }}</span>
+        </div>
+        <h1>{{ car_ad.brand }} {{ car_ad.model }}, {{ car_ad.year }}</h1>
+        <p class="price big-price">{{ car_ad.price|floatformat:0 }} ₽</p>
+        <dl class="specs">
+            <div><dt>Пробег</dt><dd>{{ car_ad.mileage }} км</dd></div>
+            <div><dt>Двигатель</dt><dd>{{ car_ad.engine_volume }} л</dd></div>
+            <div><dt>Коробка</dt><dd>{{ car_ad.get_transmission_display }}</dd></div>
+            <div><dt>Цвет</dt><dd>{{ car_ad.color }}</dd></div>
+            <div><dt>Город</dt><dd>{{ car_ad.seller.city }}</dd></div>
+            <div><dt>Торг</dt><dd>{% if car_ad.is_negotiable %}уместен{% else %}нет{% endif %}</dd></div>
+        </dl>
+        <div class="mini-tags">
+            {% for tag in car_ad.tags.all %}<span>{{ tag.name }}</span>{% endfor %}
+        </div>
+        <p>{{ car_ad.description }}</p>
+        <hr>
+        <h2>Продавец</h2>
+        <p><b>{{ car_ad.seller.full_name }}</b><br>{{ car_ad.seller.phone }}{% if car_ad.seller.email %}<br>{{ car_ad.seller.email }}{% endif %}</p>
+        <div class="form-actions">
+            {% if user.is_authenticated %}
+                <button type="button" class="button favorite-btn {% if is_favorite %}active{% endif %}" data-favorite-url="{% url 'helloapp:favorite_toggle' car_ad.pk %}">{% if is_favorite %}В избранном{% else %}В избранное{% endif %}</button>
+            {% else %}
+                <a class="button" href="{% url 'helloapp:login' %}">Войти, чтобы добавить в избранное</a>
+            {% endif %}
+            {% if user == car_ad.owner or is_moderator %}<a class="button button-outline" href="{% url 'helloapp:car_ad_edit' car_ad.pk %}">Редактировать</a>{% endif %}
+        </div>
+    </section>
+</article>
+
+{% if user.is_authenticated and car_ad.status == 'active' %}
+<section class="card contact-card">
+    <h2>Написать продавцу</h2>
+    <form method="post" action="{% url 'helloapp:contact_seller' car_ad.pk %}">
+        {% csrf_token %}
+        {{ message_form.as_p }}
+        <button class="button" type="submit">Отправить сообщение</button>
+    </form>
+</section>
+{% endif %}
+{% endblock %}

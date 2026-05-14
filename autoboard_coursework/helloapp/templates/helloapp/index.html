@@ -1,0 +1,57 @@
+{% extends 'helloapp/base.html' %}
+{% block title %}AutoBoard — объявления автомобилей{% endblock %}
+{% block content %}
+<section class="hero">
+    <div>
+        <p class="eyebrow">Django + PostgreSQL</p>
+        <h1>Сервис объявлений о продаже автомобилей</h1>
+        <p>Публикуйте объявления, ищите автомобили по параметрам, сохраняйте варианты в избранное и связывайтесь с продавцами.</p>
+        <div class="hero-actions">
+            <a class="button" href="{% url 'helloapp:car_ad_list' %}">Смотреть каталог</a>
+            {% if user.is_authenticated %}
+                <a class="button button-outline" href="{% url 'helloapp:car_ad_form' %}">Добавить авто</a>
+            {% else %}
+                <a class="button button-outline" href="{% url 'helloapp:register' %}">Зарегистрироваться</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-card" data-deferred-panel data-stats-url="{% url 'helloapp:ajax_car_ad_stats' %}" data-latest-url="{% url 'helloapp:ajax_latest_car_ads' %}">
+        <h2>Статистика</h2>
+        <div class="stats-grid">
+            <span><b data-stat="total_ads">{{ stats.total_ads }}</b> объявлений</span>
+            <span><b data-stat="total_sellers">{{ stats.total_sellers }}</b> продавцов</span>
+            <span><b data-stat="average_price">{{ stats.average_price }}</b> ₽ средняя цена</span>
+            <span><b>{{ stats.total_reviews }}</b> отзывов</span>
+        </div>
+        <div class="latest-box">
+            <h3>Последние объявления</h3>
+            <ul data-latest-list>
+                {% for ad in latest_ads|slice:':3' %}
+                    <li><a href="{{ ad.get_absolute_url }}">{{ ad }}</a></li>
+                {% empty %}
+                    <li>Пока нет объявлений</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="section-head">
+    <h2>Новые объявления</h2>
+    <a href="{% url 'helloapp:car_ad_list' %}">Все объявления →</a>
+</section>
+<div class="cards-grid">
+    {% for car_ad in latest_ads %}
+        {% include 'helloapp/includes/car_card.html' with car_ad=car_ad %}
+    {% empty %}
+        <p class="empty">После запуска seed-команды здесь появятся объявления.</p>
+    {% endfor %}
+</div>
+
+<section class="tags-cloud">
+    <h2>Популярные теги</h2>
+    {% for tag in popular_tags %}
+        <a class="tag" href="{% url 'helloapp:car_ad_list' %}?tag={{ tag.slug }}">{{ tag.name }}</a>
+    {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,5 @@
+Django>=5.2,<6.0
+psycopg[binary]>=3.3,<4.0
+python-dotenv>=1.0,<2.0
+Pillow>=11.0,<13.0
+Faker>=26.0,<40.0

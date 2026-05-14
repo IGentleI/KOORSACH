@@ -1,0 +1,13 @@
+{% extends 'helloapp/base.html' %}
+{% block title %}Регистрация{% endblock %}
+{% block content %}
+<section class="card narrow">
+    <h1>Регистрация</h1>
+    <p>После отправки формы аккаунт нужно подтвердить по token-ссылке.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="button" type="submit">Зарегистрироваться</button>
+    </form>
+</section>
+{% endblock %}

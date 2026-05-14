@@ -1,0 +1,13 @@
+{% extends 'helloapp/base.html' %}
+{% block title %}Удаление объявления{% endblock %}
+{% block content %}
+<section class="card narrow">
+    <h1>Удалить объявление?</h1>
+    <p>Объявление <b>{{ car_ad }}</b> будет скрыто из каталога.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button class="button danger" type="submit">Удалить</button>
+        <a class="button button-outline" href="{{ car_ad.get_absolute_url }}">Отмена</a>
+    </form>
+</section>
+{% endblock %}

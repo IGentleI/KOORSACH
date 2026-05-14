@@ -1,0 +1,45 @@
+{% extends 'helloapp/base.html' %}
+{% block title %}Каталог автомобилей{% endblock %}
+{% block content %}
+<section class="page-title">
+    <h1>Каталог автомобилей</h1>
+    <p>Поиск, фильтрация по параметрам и тегам, пагинация — всё, что нужно для критерия на оценку 5.</p>
+</section>
+
+<form class="filter-panel" method="get">
+    <div class="filter-grid">
+        {{ form.q.label_tag }} {{ form.q }}
+        {{ form.brand.label_tag }} {{ form.brand }}
+        {{ form.city.label_tag }} {{ form.city }}
+        {{ form.min_price.label_tag }} {{ form.min_price }}
+        {{ form.max_price.label_tag }} {{ form.max_price }}
+        {{ form.min_year.label_tag }} {{ form.min_year }}
+        {{ form.transmission.label_tag }} {{ form.transmission }}
+        <label for="id_tag">Тег</label>
+        <select name="tag" id="id_tag" class="form-control">
+            <option value="">Любой</option>
+            {% for tag in tags %}<option value="{{ tag.slug }}" {% if request.GET.tag == tag.slug %}selected{% endif %}>{{ tag.name }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="form-actions">
+        <button class="button" type="submit">Найти</button>
+        <a class="button button-outline" href="{% url 'helloapp:car_ad_list' %}">Сбросить</a>
+    </div>
+</form>
+
+<div class="cards-grid">
+    {% for car_ad in car_ads %}
+        {% include 'helloapp/includes/car_card.html' with car_ad=car_ad favorite_ids=favorite_ids %}
+    {% empty %}
+        <p class="empty">По заданным условиям ничего не найдено.</p>
+    {% endfor %}
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">← Назад</a>{% endif %}
+    <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Вперёд →</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

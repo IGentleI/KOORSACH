@@ -1,0 +1,9 @@
+{% extends 'helloapp/base.html' %}
+{% block title %}Подтверждение регистрации{% endblock %}
+{% block content %}
+<section class="card narrow">
+    <h1>Проверьте email</h1>
+    <p>Ссылка подтверждения отправлена через настроенный email backend. В учебном режиме она также показана ниже:</p>
+    <p><a href="{{ activation_url }}">{{ activation_url }}</a></p>
+</section>
+{% endblock %}

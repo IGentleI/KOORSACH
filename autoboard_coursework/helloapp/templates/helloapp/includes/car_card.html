@@ -1,0 +1,22 @@
+<article class="card car-card">
+    <a href="{{ car_ad.get_absolute_url }}" class="car-image">
+        {% if car_ad.main_image and car_ad.main_image.image %}
+            <img src="{{ car_ad.main_image.image.url }}" alt="{{ car_ad }}">
+        {% else %}
+            <div class="placeholder-image">{{ car_ad.brand|first }}{{ car_ad.model|first }}</div>
+        {% endif %}
+    </a>
+    <div class="card-body">
+        <div class="card-title-row">
+            <h3><a href="{{ car_ad.get_absolute_url }}">{{ car_ad.brand }} {{ car_ad.model }}</a></h3>
+            {% if user.is_authenticated %}
+                <button type="button" class="favorite-btn {% if car_ad.id in favorite_ids %}active{% endif %}" data-favorite-url="{% url 'helloapp:favorite_toggle' car_ad.pk %}">★</button>
+            {% endif %}
+        </div>
+        <p class="muted">{{ car_ad.year }} год · {{ car_ad.get_transmission_display }} · {{ car_ad.seller.city }}</p>
+        <p class="price">{{ car_ad.price|floatformat:0 }} ₽</p>
+        <div class="mini-tags">
+            {% for tag in car_ad.tags.all|slice:':3' %}<span>{{ tag.name }}</span>{% endfor %}
+        </div>
+    </div>
+</article>

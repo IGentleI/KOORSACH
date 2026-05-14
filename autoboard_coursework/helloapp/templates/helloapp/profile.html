@@ -1,0 +1,34 @@
+{% extends 'helloapp/base.html' %}
+{% block title %}Личный кабинет{% endblock %}
+{% block content %}
+<section class="profile-grid">
+    <div class="card profile-card">
+        <h1>Личный кабинет</h1>
+        <p><b>{{ user.get_full_name|default:user.username }}</b></p>
+        <p>{{ user.email }}<br>{{ user.profile.phone }}<br>{{ user.profile.city }}</p>
+        <p class="badge">{{ user.profile.get_role_display }}</p>
+        <div class="form-actions vertical">
+            <a class="button" href="{% url 'helloapp:profile_edit' %}">Редактировать профиль</a>
+            {% if not is_seller %}<a class="button button-outline" href="{% url 'helloapp:become_seller' %}">Стать продавцом</a>{% endif %}
+        </div>
+    </div>
+    <div class="card">
+        <h2>Мои объявления</h2>
+        <ul class="clean-list">
+            {% for ad in my_ads %}<li><a href="{{ ad.get_absolute_url }}">{{ ad }}</a> — {{ ad.get_status_display }}</li>{% empty %}<li>Пока нет объявлений.</li>{% endfor %}
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Избранное</h2>
+        <ul class="clean-list">
+            {% for fav in favorites %}<li><a href="{{ fav.car_ad.get_absolute_url }}">{{ fav.car_ad }}</a></li>{% empty %}<li>Избранных объявлений нет.</li>{% endfor %}
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Сообщения продавцу</h2>
+        <ul class="clean-list">
+            {% for msg in incoming_messages %}<li><b>{{ msg.buyer_name }}</b> по <a href="{{ msg.car_ad.get_absolute_url }}">{{ msg.car_ad }}</a>: {{ msg.text|truncatechars:80 }}</li>{% empty %}<li>Новых сообщений нет.</li>{% endfor %}
+        </ul>
+    </div>
+</section>
+{% endblock %}
