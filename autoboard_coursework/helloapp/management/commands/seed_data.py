@@ -1,7 +1,10 @@
+import json
 from decimal import Decimal
 from hashlib import md5
 from io import BytesIO
 from random import choice, randint, sample
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 from django.contrib.auth.models import Group, User
 from django.core.files.base import ContentFile
@@ -10,6 +13,61 @@ from django.utils.text import slugify
 from PIL import Image, ImageDraw, ImageFont
 
 from helloapp.models import CarAd, CarImage, CarTag, Favorite, Message, Review, SellerInfo
+
+
+def _download_url(url, *, accept='application/json'):
+    request = Request(
+        url,
+        headers={
+            'Accept': accept,
+            'User-Agent': 'AutoBoardCoursework/1.0 (demo seed data)',
+        },
+    )
+    with urlopen(request, timeout=15) as response:
+        return response.read(), response.headers.get('Content-Type', '')
+
+
+def find_commons_car_photo(brand, model):
+    """Ищет в интернете фото автомобиля через Wikimedia Commons API."""
+
+    params = {
+        'action': 'query',
+        'format': 'json',
+        'generator': 'search',
+        'gsrnamespace': 6,
+        'gsrlimit': 10,
+        'gsrsearch': f'{brand} {model} car',
+        'prop': 'imageinfo',
+        'iiprop': 'url|mime',
+        'iiurlwidth': 960,
+    }
+    api_url = f'https://commons.wikimedia.org/w/api.php?{urlencode(params)}'
+    payload, _ = _download_url(api_url)
+    pages = json.loads(payload.decode('utf-8')).get('query', {}).get('pages', {})
+
+    for page in pages.values():
+        image_info = (page.get('imageinfo') or [{}])[0]
+        mime = image_info.get('mime', '')
+        if mime not in {'image/jpeg', 'image/png'}:
+            continue
+        image_url = image_info.get('thumburl') or image_info.get('url')
+        if not image_url:
+            continue
+        extension = 'jpg' if mime == 'image/jpeg' else 'png'
+        content, content_type = _download_url(image_url, accept='image/*')
+        if not content_type.startswith('image/'):
+            continue
+        filename = f'{slugify(brand)}-{slugify(model)}-commons.{extension}'
+        return ContentFile(content, name=filename)
+
+    return None
+
+
+def get_car_photo(brand, model, car_color):
+    try:
+        return find_commons_car_photo(brand, model) or build_demo_car_photo(brand, model, car_color)
+    except Exception:
+        return build_demo_car_photo(brand, model, car_color)
 
 
 def build_demo_car_photo(brand, model, car_color):
@@ -150,7 +208,7 @@ class Command(BaseCommand):
             if main_image is None:
                 main_image = CarImage(car_ad=car_ad, is_main=True)
             main_image.caption = f'Демо-фото {car_ad.brand} {car_ad.model}'
-            main_image.image = build_demo_car_photo(car_ad.brand, car_ad.model, car_ad.color)
+            main_image.image = get_car_photo(car_ad.brand, car_ad.model, car_ad.color)
             main_image.save()
 
         ads = list(CarAd.objects.all())

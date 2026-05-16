@@ -6,7 +6,8 @@
     <p>После сохранения объявление отправляется модератору. Это демонстрирует разграничение прав пользователей.</p>
 </section>
 
-<form method="post" enctype="multipart/form-data" class="card form-card" data-car-models='{{ car_models_json|escape }}'>
+{{ car_models|json_script:'car-models-data' }}
+<form method="post" enctype="multipart/form-data" class="card form-card">
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="message error">{{ form.non_field_errors }}</div>{% endif %}
     <h2>Данные продавца</h2>

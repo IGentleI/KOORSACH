@@ -1,4 +1,3 @@
-import json
 import re
 
 from django.contrib import messages
@@ -320,7 +319,7 @@ def car_ad_form(request):
 
     return render(request, 'helloapp/car_ad_form.html', {
         'form': form,
-        'car_models_json': json.dumps(CarAdForm.CAR_MODELS, ensure_ascii=False),
+        'car_models': CarAdForm.CAR_MODELS,
     })
 
 
@@ -363,7 +362,7 @@ def car_ad_edit(request, pk):
         'form': form,
         'car_ad': car_ad,
         'is_edit': True,
-        'car_models_json': json.dumps(CarAdForm.CAR_MODELS, ensure_ascii=False),
+        'car_models': CarAdForm.CAR_MODELS,
     })
 
 
