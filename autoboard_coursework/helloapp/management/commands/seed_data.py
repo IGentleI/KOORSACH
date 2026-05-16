@@ -3,7 +3,7 @@ from decimal import Decimal
 from hashlib import md5
 from io import BytesIO
 from random import choice, randint, sample
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 from django.contrib.auth.models import Group, User
@@ -13,6 +13,38 @@ from django.utils.text import slugify
 from PIL import Image, ImageDraw, ImageFont
 
 from helloapp.models import CarAd, CarImage, CarTag, Favorite, Message, Review, SellerInfo
+
+
+WIKIPEDIA_MODEL_PAGES = {
+    ('Toyota', 'Camry'): 'Toyota Camry',
+    ('Toyota', 'Corolla'): 'Toyota Corolla',
+    ('Toyota', 'RAV4'): 'Toyota RAV4',
+    ('Toyota', 'Land Cruiser'): 'Toyota Land Cruiser',
+    ('BMW', '3 Series'): 'BMW 3 Series',
+    ('BMW', '5 Series'): 'BMW 5 Series',
+    ('BMW', 'X3'): 'BMW X3',
+    ('BMW', 'X5'): 'BMW X5',
+    ('Mercedes-Benz', 'C-Class'): 'Mercedes-Benz C-Class',
+    ('Mercedes-Benz', 'E-Class'): 'Mercedes-Benz E-Class',
+    ('Mercedes-Benz', 'GLA'): 'Mercedes-Benz GLA',
+    ('Mercedes-Benz', 'GLE'): 'Mercedes-Benz GLE',
+    ('Kia', 'Rio'): 'Kia Rio',
+    ('Kia', 'Ceed'): 'Kia Ceed',
+    ('Kia', 'Sportage'): 'Kia Sportage',
+    ('Kia', 'Sorento'): 'Kia Sorento',
+    ('Hyundai', 'Solaris'): 'Hyundai Solaris',
+    ('Hyundai', 'Elantra'): 'Hyundai Elantra',
+    ('Hyundai', 'Tucson'): 'Hyundai Tucson',
+    ('Hyundai', 'Santa Fe'): 'Hyundai Santa Fe',
+    ('Lada', 'Granta'): 'Lada Granta',
+    ('Lada', 'Vesta'): 'Lada Vesta',
+    ('Lada', 'Niva Travel'): 'Lada Niva Travel',
+    ('Lada', 'Largus'): 'Lada Largus',
+    ('Volkswagen', 'Polo'): 'Volkswagen Polo',
+    ('Volkswagen', 'Jetta'): 'Volkswagen Jetta',
+    ('Volkswagen', 'Tiguan'): 'Volkswagen Tiguan',
+    ('Volkswagen', 'Touareg'): 'Volkswagen Touareg',
+}
 
 
 def _download_url(url, *, accept='application/json'):
@@ -25,6 +57,34 @@ def _download_url(url, *, accept='application/json'):
     )
     with urlopen(request, timeout=15) as response:
         return response.read(), response.headers.get('Content-Type', '')
+
+
+def _content_file_from_image_url(url, brand, model, source):
+    content, content_type = _download_url(url, accept='image/*')
+    if not content_type.startswith('image/'):
+        return None
+
+    if 'png' in content_type:
+        extension = 'png'
+    elif 'webp' in content_type:
+        extension = 'webp'
+    else:
+        extension = 'jpg'
+    filename = f'{slugify(brand)}-{slugify(model)}-{source}.{extension}'
+    return ContentFile(content, name=filename)
+
+
+def find_wikipedia_car_photo(brand, model):
+    """Скачивает главное реальное фото со страницы конкретной модели на Wikipedia."""
+
+    page_title = WIKIPEDIA_MODEL_PAGES.get((brand, model), f'{brand} {model}')
+    summary_url = f'https://en.wikipedia.org/api/rest_v1/page/summary/{quote(page_title)}'
+    payload, _ = _download_url(summary_url)
+    data = json.loads(payload.decode('utf-8'))
+    image_url = (data.get('originalimage') or data.get('thumbnail') or {}).get('source')
+    if not image_url:
+        return None
+    return _content_file_from_image_url(image_url, brand, model, 'wikipedia')
 
 
 def find_commons_car_photo(brand, model):
@@ -53,19 +113,20 @@ def find_commons_car_photo(brand, model):
         image_url = image_info.get('thumburl') or image_info.get('url')
         if not image_url:
             continue
-        extension = 'jpg' if mime == 'image/jpeg' else 'png'
-        content, content_type = _download_url(image_url, accept='image/*')
-        if not content_type.startswith('image/'):
-            continue
-        filename = f'{slugify(brand)}-{slugify(model)}-commons.{extension}'
-        return ContentFile(content, name=filename)
+        image = _content_file_from_image_url(image_url, brand, model, 'commons')
+        if image:
+            return image
 
     return None
 
 
 def get_car_photo(brand, model, car_color):
     try:
-        return find_commons_car_photo(brand, model) or build_demo_car_photo(brand, model, car_color)
+        return (
+            find_wikipedia_car_photo(brand, model)
+            or find_commons_car_photo(brand, model)
+            or build_demo_car_photo(brand, model, car_color)
+        )
     except Exception:
         return build_demo_car_photo(brand, model, car_color)
 
@@ -207,7 +268,7 @@ class Command(BaseCommand):
             main_image = car_ad.images.filter(is_main=True).first()
             if main_image is None:
                 main_image = CarImage(car_ad=car_ad, is_main=True)
-            main_image.caption = f'Демо-фото {car_ad.brand} {car_ad.model}'
+            main_image.caption = f'Реальное фото {car_ad.brand} {car_ad.model}'
             main_image.image = get_car_photo(car_ad.brand, car_ad.model, car_ad.color)
             main_image.save()
 
