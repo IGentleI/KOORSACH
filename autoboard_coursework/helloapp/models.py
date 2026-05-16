@@ -113,10 +113,10 @@ class CarAd(models.Model):
         verbose_name_plural = 'Объявления'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['status', 'removed']),
-            models.Index(fields=['brand', 'model']),
-            models.Index(fields=['price']),
-            models.Index(fields=['year']),
+            models.Index(fields=['status', 'removed'], name='helloapp_ca_status_1558a9_idx'),
+            models.Index(fields=['brand', 'model'], name='helloapp_ca_brand_56d04d_idx'),
+            models.Index(fields=['price'], name='helloapp_ca_price_79c3c0_idx'),
+            models.Index(fields=['year'], name='helloapp_ca_year_38130d_idx'),
         ]
 
     def __str__(self):
