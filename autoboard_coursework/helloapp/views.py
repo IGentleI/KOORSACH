@@ -1,4 +1,6 @@
 import re
+from hashlib import md5
+from html import escape
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
@@ -7,7 +9,7 @@ from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db.models import Avg, Count, Q
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.encoding import force_str
