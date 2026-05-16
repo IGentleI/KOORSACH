@@ -28,28 +28,6 @@ EMAIL_REGEXP = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$')
 
 
 
-def car_image_fallback(request, brand, model, seed):
-    title = escape(f'{brand} {model}')
-    palette = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#0891b2', '#475569']
-    body_color = palette[int(md5(f'{brand}-{model}-{seed}'.encode()).hexdigest(), 16) % len(palette)]
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-label="{title}">
-    <rect width="960" height="360" fill="#e0f2fe"/>
-    <rect y="360" width="960" height="240" fill="#d1d5db"/>
-    <line x1="0" y1="480" x2="960" y2="480" stroke="#ffffff" stroke-width="8"/>
-    <rect x="190" y="270" width="580" height="160" rx="48" fill="{body_color}"/>
-    <polygon points="310,270 410,180 600,180 700,270" fill="{body_color}"/>
-    <polygon points="350,260 430,205 500,205 500,260" fill="#bae6fd"/>
-    <polygon points="520,260 520,205 585,205 655,260" fill="#bae6fd"/>
-    <circle cx="320" cy="440" r="60" fill="#111827"/>
-    <circle cx="640" cy="440" r="60" fill="#111827"/>
-    <circle cx="320" cy="440" r="25" fill="#e5e7eb"/>
-    <circle cx="640" cy="440" r="25" fill="#e5e7eb"/>
-    <rect x="690" y="310" width="55" height="25" rx="8" fill="#fde68a"/>
-    <text x="48" y="76" fill="#0f172a" font-family="Arial, sans-serif" font-size="44" font-weight="700">{title}</text>
-    <text x="48" y="120" fill="#334155" font-family="Arial, sans-serif" font-size="24">Фото автомобиля</text>
-</svg>"""
-    return HttpResponse(svg, content_type='image/svg+xml')
-
 def _in_group(user, group_name):
     return user.is_authenticated and user.groups.filter(name=group_name).exists()
 

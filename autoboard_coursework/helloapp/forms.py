@@ -153,10 +153,6 @@ class CarAdForm(BootstrapFormMixin, forms.ModelForm):
             self.fields['model'].widget.attrs.pop('disabled', None)
         else:
             self.fields['model'].widget.attrs['disabled'] = 'disabled'
-        self.fields['car_image'].required = not (self.instance.pk and self.instance.images.exists())
-        if self.fields['car_image'].required:
-            self.fields['car_image'].help_text = 'Загрузите фото, чтобы объявление не отображалось без изображения.'
-
         if self.user and self.user.is_authenticated and not self.initial:
             profile = getattr(self.user, 'profile', None)
             full_name = [self.user.last_name, self.user.first_name]
