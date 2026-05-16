@@ -16,30 +16,59 @@
         menuButton.addEventListener('click', () => menu.classList.toggle('open'));
     }
 
-    const formCard = document.querySelector('[data-car-models]');
+    const formCard = document.querySelector('.form-card');
     if (formCard) {
+        const modelsScript = document.querySelector('#car-models-data');
         let models = {};
-        try { models = JSON.parse(formCard.dataset.carModels); } catch (e) { models = {}; }
+        try {
+            models = modelsScript ? JSON.parse(modelsScript.textContent) : JSON.parse(formCard.dataset.carModels || '{}');
+        } catch (e) {
+            models = {};
+        }
         const brand = document.querySelector('#id_brand');
         const model = document.querySelector('#id_model');
         const currentModel = model ? model.dataset.currentModel : '';
+        const appendModelOption = (parent, item) => {
+            const option = document.createElement('option');
+            option.value = item;
+            option.textContent = item;
+            if (item === currentModel) option.selected = true;
+            parent.appendChild(option);
+        };
         const rebuildModels = () => {
             if (!brand || !model) return;
             const selectedBrand = brand.value;
-            model.innerHTML = '<option value="">Выберите модель</option>';
-            (models[selectedBrand] || []).forEach((item) => {
+            model.innerHTML = '';
+            if (!selectedBrand) {
                 const option = document.createElement('option');
-                option.value = item;
-                option.textContent = item;
-                if (item === currentModel) option.selected = true;
+                option.value = '';
+                option.textContent = 'Сначала выберите марку';
                 model.appendChild(option);
-            });
+                model.disabled = true;
+                return;
+            }
+
+            model.disabled = false;
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Выберите модель';
+            model.appendChild(placeholder);
+            (models[selectedBrand] || []).forEach((item) => appendModelOption(model, item));
         };
         if (brand && model) {
             brand.addEventListener('change', rebuildModels);
             rebuildModels();
         }
     }
+
+    document.querySelectorAll('img[data-fallback-src]').forEach((image) => {
+        image.addEventListener('error', () => {
+            const fallbackSrc = image.dataset.fallbackSrc;
+            if (fallbackSrc && image.src !== fallbackSrc) {
+                image.src = fallbackSrc;
+            }
+        });
+    });
 
     document.querySelectorAll('[data-ajax-field]').forEach((wrapper) => {
         const input = wrapper.querySelector('input');

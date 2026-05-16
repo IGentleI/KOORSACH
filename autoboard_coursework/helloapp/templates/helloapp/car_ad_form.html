@@ -6,7 +6,8 @@
     <p>После сохранения объявление отправляется модератору. Это демонстрирует разграничение прав пользователей.</p>
 </section>
 
-<form method="post" enctype="multipart/form-data" class="card form-card" data-car-models='{{ car_models_json|escapejs }}'>
+{{ car_models|json_script:'car-models-data' }}
+<form method="post" enctype="multipart/form-data" class="card form-card">
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="message error">{{ form.non_field_errors }}</div>{% endif %}
     <h2>Данные продавца</h2>
@@ -29,7 +30,7 @@
         <div>{{ form.engine_volume.label_tag }} {{ form.engine_volume }} {{ form.engine_volume.errors }}</div>
         <div>{{ form.transmission.label_tag }} {{ form.transmission }} {{ form.transmission.errors }}</div>
         <div>{{ form.color.label_tag }} {{ form.color }} {{ form.color.errors }}</div>
-        <div>{{ form.car_image.label_tag }} {{ form.car_image }} {{ form.car_image.errors }}</div>
+        <div>{{ form.car_image.label_tag }} {{ form.car_image }} {% if form.car_image.help_text %}<small class="field-hint">{{ form.car_image.help_text }}</small>{% endif %} {{ form.car_image.errors }}</div>
     </div>
     <div class="full-field">{{ form.description.label_tag }} {{ form.description }} {{ form.description.errors }}</div>
     <div class="full-field check-row">{{ form.is_negotiable }} {{ form.is_negotiable.label_tag }}</div>
