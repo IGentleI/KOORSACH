@@ -139,8 +139,9 @@ class CarAdForm(BootstrapFormMixin, forms.ModelForm):
         self.fields['model'].widget.attrs['data-current-model'] = self.initial.get('model', '') or getattr(self.instance, 'model', '')
 
         selected_brand = self.data.get('brand') or self.initial.get('brand') or getattr(self.instance, 'brand', '')
-        model_choices = [('', 'Выберите модель')]
+        model_choices = [('', 'Сначала выберите марку')]
         if selected_brand in self.CAR_MODELS:
+            model_choices = [('', 'Выберите модель')]
             model_choices += [(model, model) for model in self.CAR_MODELS[selected_brand]]
         else:
             model_choices += [

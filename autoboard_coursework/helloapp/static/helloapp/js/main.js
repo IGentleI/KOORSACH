@@ -38,23 +38,37 @@
         const rebuildModels = () => {
             if (!brand || !model) return;
             const selectedBrand = brand.value;
-            model.innerHTML = '<option value="">Выберите модель</option>';
-            if (selectedBrand) {
-                (models[selectedBrand] || []).forEach((item) => appendModelOption(model, item));
+            model.innerHTML = '';
+            if (!selectedBrand) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Сначала выберите марку';
+                model.appendChild(option);
+                model.disabled = true;
                 return;
             }
-            Object.entries(models).forEach(([brandName, brandModels]) => {
-                const group = document.createElement('optgroup');
-                group.label = brandName;
-                brandModels.forEach((item) => appendModelOption(group, item));
-                model.appendChild(group);
-            });
+
+            model.disabled = false;
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Выберите модель';
+            model.appendChild(placeholder);
+            (models[selectedBrand] || []).forEach((item) => appendModelOption(model, item));
         };
         if (brand && model) {
             brand.addEventListener('change', rebuildModels);
             rebuildModels();
         }
     }
+
+    document.querySelectorAll('img[data-fallback-src]').forEach((image) => {
+        image.addEventListener('error', () => {
+            const fallbackSrc = image.dataset.fallbackSrc;
+            if (fallbackSrc && image.src !== fallbackSrc) {
+                image.src = fallbackSrc;
+            }
+        });
+    });
 
     document.querySelectorAll('[data-ajax-field]').forEach((wrapper) => {
         const input = wrapper.querySelector('input');
