@@ -1,12 +1,48 @@
 from decimal import Decimal
+from hashlib import md5
+from io import BytesIO
 from random import choice, randint, sample
 
 from django.contrib.auth.models import Group, User
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
+from PIL import Image, ImageDraw, ImageFont
 
 from helloapp.models import CarAd, CarImage, CarTag, Favorite, Message, Review, SellerInfo
+
+
+def build_demo_car_photo(brand, model, car_color):
+    """Создаёт валидное demo-фото автомобиля для seed-объявлений."""
+
+    palette = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#0891b2', '#475569']
+    color_index = int(md5(f'{brand}-{model}'.encode()).hexdigest(), 16) % len(palette)
+    body_color = palette[color_index]
+
+    image = Image.new('RGB', (960, 600), '#f8fafc')
+    draw = ImageDraw.Draw(image)
+    title_font = ImageFont.load_default(size=44)
+    text_font = ImageFont.load_default(size=28)
+
+    # Нейтральный фон, дорога и простая силуэтная иллюстрация автомобиля.
+    draw.rectangle((0, 0, 960, 360), fill='#e0f2fe')
+    draw.rectangle((0, 360, 960, 600), fill='#d1d5db')
+    draw.line((0, 480, 960, 480), fill='#ffffff', width=8)
+    draw.rounded_rectangle((190, 270, 770, 430), radius=48, fill=body_color)
+    draw.polygon([(310, 270), (410, 180), (600, 180), (700, 270)], fill=body_color)
+    draw.polygon([(350, 260), (430, 205), (500, 205), (500, 260)], fill='#bae6fd')
+    draw.polygon([(520, 260), (520, 205), (585, 205), (655, 260)], fill='#bae6fd')
+    draw.ellipse((260, 380, 380, 500), fill='#111827')
+    draw.ellipse((580, 380, 700, 500), fill='#111827')
+    draw.ellipse((295, 415, 345, 465), fill='#e5e7eb')
+    draw.ellipse((615, 415, 665, 465), fill='#e5e7eb')
+    draw.rounded_rectangle((690, 310, 745, 335), radius=8, fill='#fde68a')
+    draw.text((48, 42), f'{brand} {model}', fill='#0f172a', font=title_font)
+    draw.text((48, 100), f'Демо-фото · цвет: {car_color}', fill='#334155', font=text_font)
+
+    buffer = BytesIO()
+    image.save(buffer, format='JPEG', quality=88)
+    return ContentFile(buffer.getvalue(), name=f'{slugify(brand)}-{slugify(model)}.jpg')
 
 
 class Command(BaseCommand):
@@ -88,16 +124,15 @@ class Command(BaseCommand):
             )
             sellers.append(seller)
 
-        for i in range(1, 25):
-            brand = choice(list(brands.keys()))
-            model = choice(brands[brand])
-            seller = choice(sellers)
-            car_ad, created = CarAd.objects.get_or_create(
+        model_pairs = [(brand, model) for brand, models in brands.items() for model in models]
+        for i, (brand, model) in enumerate(model_pairs, start=1):
+            seller = sellers[(i - 1) % len(sellers)]
+            car_ad, _ = CarAd.objects.get_or_create(
                 seller=seller,
                 brand=brand,
                 model=model,
-                year=randint(2008, 2024),
                 defaults={
+                    'year': randint(2008, 2024),
                     'owner': seller.user,
                     'price': Decimal(randint(450_000, 7_000_000)),
                     'mileage': randint(5_000, 220_000),
@@ -111,13 +146,12 @@ class Command(BaseCommand):
                 },
             )
             car_ad.tags.set(sample(tags, k=randint(2, 4)))
-            if not car_ad.images.exists():
-                CarImage.objects.create(
-                    car_ad=car_ad,
-                    caption='Демо-фото',
-                    is_main=True,
-                    image=ContentFile(b'demo image placeholder', name=f'car_{car_ad.pk}.jpg'),
-                )
+            main_image = car_ad.images.filter(is_main=True).first()
+            if main_image is None:
+                main_image = CarImage(car_ad=car_ad, is_main=True)
+            main_image.caption = f'Демо-фото {car_ad.brand} {car_ad.model}'
+            main_image.image = build_demo_car_photo(car_ad.brand, car_ad.model, car_ad.color)
+            main_image.save()
 
         ads = list(CarAd.objects.all())
         users = list(User.objects.filter(username__startswith='seller_')) + [buyer]
