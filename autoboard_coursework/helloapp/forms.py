@@ -143,6 +143,9 @@ class CarAdForm(BootstrapFormMixin, forms.ModelForm):
         if selected_brand in self.CAR_MODELS:
             model_choices += [(model, model) for model in self.CAR_MODELS[selected_brand]]
         self.fields['model'].widget.choices = model_choices
+        self.fields['car_image'].required = not (self.instance.pk and self.instance.images.exists())
+        if self.fields['car_image'].required:
+            self.fields['car_image'].help_text = 'Загрузите фото, чтобы объявление не отображалось без изображения.'
 
         if self.user and self.user.is_authenticated and not self.initial:
             profile = getattr(self.user, 'profile', None)
