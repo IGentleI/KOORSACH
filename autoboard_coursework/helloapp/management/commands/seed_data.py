@@ -1,12 +1,41 @@
 from decimal import Decimal
 from random import choice, randint, sample
 
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group, Permission, User
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 
 from helloapp.models import CarAd, CarImage, CarTag, Favorite, Message, Review, SellerInfo
+
+
+GROUP_PERMISSIONS = {
+    'Buyer': [
+        'view_carad', 'view_cartag', 'add_favorite', 'delete_favorite',
+        'add_message', 'view_message', 'add_review', 'view_review',
+    ],
+    'Seller': [
+        'add_carad', 'change_carad', 'delete_carad', 'view_carad',
+        'add_carimage', 'change_carimage', 'delete_carimage', 'view_carimage',
+        'add_sellerinfo', 'change_sellerinfo', 'view_sellerinfo',
+        'view_message', 'view_review',
+    ],
+    'Moderator': [
+        'change_carad', 'delete_carad', 'view_carad',
+        'change_carimage', 'delete_carimage', 'view_carimage',
+        'change_sellerinfo', 'view_sellerinfo',
+        'change_message', 'view_message',
+        'change_review', 'delete_review', 'view_review',
+    ],
+}
+
+
+def configure_group_permissions(groups):
+    """Назначает демонстрационные Django permissions группам для защиты курсовой."""
+
+    for group_name, codenames in GROUP_PERMISSIONS.items():
+        permissions = Permission.objects.filter(codename__in=codenames)
+        groups[group_name].permissions.set(permissions)
 
 
 class Command(BaseCommand):
@@ -16,6 +45,11 @@ class Command(BaseCommand):
         buyer_group, _ = Group.objects.get_or_create(name='Buyer')
         seller_group, _ = Group.objects.get_or_create(name='Seller')
         moderator_group, _ = Group.objects.get_or_create(name='Moderator')
+        configure_group_permissions({
+            'Buyer': buyer_group,
+            'Seller': seller_group,
+            'Moderator': moderator_group,
+        })
 
         admin, _ = User.objects.get_or_create(username='admin', defaults={'email': 'admin@example.com', 'is_staff': True, 'is_superuser': True, 'is_active': True})
         admin.set_password('AdminPass123!')
