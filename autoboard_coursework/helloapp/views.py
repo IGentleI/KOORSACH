@@ -1,4 +1,3 @@
-import json
 import re
 
 from django.contrib import messages
@@ -8,7 +7,7 @@ from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db.models import Avg, Count, Q
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.encoding import force_str
@@ -24,6 +23,12 @@ from .tokens import account_activation_token
 User = get_user_model()
 PHONE_REGEXP = re.compile(r'^\+?[0-9\s()\-]{10,20}$')
 EMAIL_REGEXP = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$')
+
+
+def car_image_fallback(*args, **kwargs):
+    """Legacy no-op for old URL configs after photo automation was removed."""
+
+    raise Http404('Автоматические fallback-фотографии отключены.')
 
 
 def _in_group(user, group_name):
@@ -320,7 +325,7 @@ def car_ad_form(request):
 
     return render(request, 'helloapp/car_ad_form.html', {
         'form': form,
-        'car_models_json': json.dumps(CarAdForm.CAR_MODELS, ensure_ascii=False),
+        'car_models': CarAdForm.CAR_MODELS,
     })
 
 
@@ -363,7 +368,7 @@ def car_ad_edit(request, pk):
         'form': form,
         'car_ad': car_ad,
         'is_edit': True,
-        'car_models_json': json.dumps(CarAdForm.CAR_MODELS, ensure_ascii=False),
+        'car_models': CarAdForm.CAR_MODELS,
     })
 
 

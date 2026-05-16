@@ -1,18 +1,20 @@
-from decimal import Decimal
-from random import choice, randint, sample
+from random import choice
 
 from django.contrib.auth.models import Group, User
-from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 
-from helloapp.models import CarAd, CarImage, CarTag, Favorite, Message, Review, SellerInfo
+from helloapp.models import CarAd, CarTag, SellerInfo
 
 
 class Command(BaseCommand):
-    help = 'Создаёт группы, пользователей и тестовые данные для защиты курсовой.'
+    help = 'Создаёт группы, пользователей, продавцов и теги для защиты курсовой без demo-объявлений.'
 
     def handle(self, *args, **options):
+        deleted_ads, _ = CarAd.objects.all().delete()
+        if deleted_ads:
+            self.stdout.write(self.style.WARNING(f'Удалено объявлений и связанных фото: {deleted_ads}.'))
+
         buyer_group, _ = Group.objects.get_or_create(name='Buyer')
         seller_group, _ = Group.objects.get_or_create(name='Seller')
         moderator_group, _ = Group.objects.get_or_create(name='Moderator')
@@ -38,6 +40,15 @@ class Command(BaseCommand):
         seller_demo.profile.city = 'Красноярск'
         seller_demo.profile.role = 'seller'
         seller_demo.profile.save()
+        SellerInfo.objects.get_or_create(
+            user=seller_demo,
+            defaults={
+                'full_name': 'Пётр Продавец',
+                'phone': '+79003000002',
+                'email': 'seller_contact_demo@example.com',
+                'city': seller_demo.profile.city,
+            },
+        )
 
         moderator, _ = User.objects.get_or_create(username='moderator_demo', defaults={'email': 'moderator@example.com', 'first_name': 'Мария', 'last_name': 'Модератор', 'is_staff': True, 'is_active': True})
         moderator.set_password('DemoPass123!')
@@ -49,25 +60,10 @@ class Command(BaseCommand):
         moderator.profile.save()
 
         tag_names = ['С пробегом', 'Автомат', 'Семейный', 'Экономичный', 'Полноприводный', 'Премиум', 'Для города', 'Для путешествий', 'Без ДТП', 'Один владелец', 'Новая резина', 'Торг', 'Кредит', 'Лизинг', 'Сервисная книжка', 'Зимний пакет', 'Камера', 'Парктроники']
-        tags = []
         for name in tag_names:
-            tag, _ = CarTag.objects.get_or_create(name=name, defaults={'slug': slugify(name, allow_unicode=True)})
-            tags.append(tag)
+            CarTag.objects.get_or_create(name=name, defaults={'slug': slugify(name, allow_unicode=True)})
 
-        brands = {
-            'Toyota': ['Camry', 'Corolla', 'RAV4', 'Land Cruiser'],
-            'BMW': ['3 Series', '5 Series', 'X3', 'X5'],
-            'Mercedes-Benz': ['C-Class', 'E-Class', 'GLA', 'GLE'],
-            'Kia': ['Rio', 'Ceed', 'Sportage', 'Sorento'],
-            'Hyundai': ['Solaris', 'Elantra', 'Tucson', 'Santa Fe'],
-            'Lada': ['Granta', 'Vesta', 'Niva Travel', 'Largus'],
-            'Volkswagen': ['Polo', 'Jetta', 'Tiguan', 'Touareg'],
-        }
         cities = ['Красноярск', 'Новосибирск', 'Москва', 'Санкт-Петербург', 'Томск', 'Иркутск']
-        transmissions = ['manual', 'automatic', 'robot', 'variator']
-        colors = ['чёрный', 'белый', 'серебристый', 'синий', 'красный', 'серый']
-
-        sellers = []
         for i in range(1, 19):
             user, _ = User.objects.get_or_create(username=f'seller_{i}', defaults={'email': f'seller_{i}@example.com', 'first_name': f'Имя{i}', 'last_name': f'Продавец{i}', 'is_active': True})
             user.set_password('DemoPass123!')
@@ -77,7 +73,7 @@ class Command(BaseCommand):
             user.profile.city = choice(cities)
             user.profile.role = 'seller'
             user.profile.save()
-            seller, _ = SellerInfo.objects.get_or_create(
+            SellerInfo.objects.get_or_create(
                 user=user,
                 defaults={
                     'full_name': f'Продавец {i}',
@@ -86,55 +82,6 @@ class Command(BaseCommand):
                     'city': user.profile.city,
                 },
             )
-            sellers.append(seller)
 
-        for i in range(1, 25):
-            brand = choice(list(brands.keys()))
-            model = choice(brands[brand])
-            seller = choice(sellers)
-            car_ad, created = CarAd.objects.get_or_create(
-                seller=seller,
-                brand=brand,
-                model=model,
-                year=randint(2008, 2024),
-                defaults={
-                    'owner': seller.user,
-                    'price': Decimal(randint(450_000, 7_000_000)),
-                    'mileage': randint(5_000, 220_000),
-                    'engine_volume': Decimal(choice(['1.4', '1.6', '2.0', '2.5', '3.0'])),
-                    'transmission': choice(transmissions),
-                    'color': choice(colors),
-                    'description': 'Тестовое объявление для демонстрации курсовой работы: исправное состояние, документы готовы, возможен осмотр.',
-                    'is_negotiable': bool(randint(0, 1)),
-                    'status': 'active' if i % 5 else 'pending',
-                    'views_count': randint(0, 500),
-                },
-            )
-            car_ad.tags.set(sample(tags, k=randint(2, 4)))
-            if not car_ad.images.exists():
-                CarImage.objects.create(
-                    car_ad=car_ad,
-                    caption='Демо-фото',
-                    is_main=True,
-                    image=ContentFile(b'demo image placeholder', name=f'car_{car_ad.pk}.jpg'),
-                )
-
-        ads = list(CarAd.objects.all())
-        users = list(User.objects.filter(username__startswith='seller_')) + [buyer]
-        for idx, user in enumerate(users[:18]):
-            Favorite.objects.get_or_create(user=user, car_ad=choice(ads))
-            Message.objects.get_or_create(
-                car_ad=choice(ads),
-                sender=buyer,
-                seller=choice(sellers),
-                buyer_name='Иван Покупатель',
-                buyer_email='buyer@example.com',
-                text=f'Здравствуйте! Актуально ли объявление? Сообщение #{idx + 1}',
-            )
-            Review.objects.get_or_create(
-                buyer=buyer,
-                seller=sellers[idx % len(sellers)],
-                defaults={'rating': randint(4, 5), 'comment': 'Продавец быстро ответил и подробно рассказал об автомобиле.'},
-            )
-
-        self.stdout.write(self.style.SUCCESS('Данные созданы. Логины: admin/AdminPass123!, buyer_demo/DemoPass123!, seller_demo/DemoPass123!, moderator_demo/DemoPass123!'))
+        self.stdout.write(self.style.SUCCESS('Базовые данные созданы без demo-объявлений. Объявления и фотографии можно добавить вручную через сайт.'))
+        self.stdout.write(self.style.SUCCESS('Логины: admin/AdminPass123!, buyer_demo/DemoPass123!, seller_demo/DemoPass123!, moderator_demo/DemoPass123!'))
