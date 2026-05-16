@@ -1,4 +1,3 @@
-import json
 import re
 
 from django.contrib import messages
@@ -24,6 +23,7 @@ from .tokens import account_activation_token
 User = get_user_model()
 PHONE_REGEXP = re.compile(r'^\+?[0-9\s()\-]{10,20}$')
 EMAIL_REGEXP = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$')
+
 
 
 def _in_group(user, group_name):
@@ -320,7 +320,7 @@ def car_ad_form(request):
 
     return render(request, 'helloapp/car_ad_form.html', {
         'form': form,
-        'car_models_json': json.dumps(CarAdForm.CAR_MODELS, ensure_ascii=False),
+        'car_models': CarAdForm.CAR_MODELS,
     })
 
 
@@ -363,7 +363,7 @@ def car_ad_edit(request, pk):
         'form': form,
         'car_ad': car_ad,
         'is_edit': True,
-        'car_models_json': json.dumps(CarAdForm.CAR_MODELS, ensure_ascii=False),
+        'car_models': CarAdForm.CAR_MODELS,
     })
 
 
