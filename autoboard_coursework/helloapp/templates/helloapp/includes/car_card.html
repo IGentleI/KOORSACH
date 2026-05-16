@@ -1,9 +1,9 @@
 <article class="card car-card">
     <a href="{{ car_ad.get_absolute_url }}" class="car-image">
         {% if car_ad.main_image and car_ad.main_image.image %}
-            <img src="{{ car_ad.main_image.image.url }}" alt="{{ car_ad }}">
+            <img src="{{ car_ad.main_image.image.url }}" data-fallback-src="https://loremflickr.com/960/600/{{ car_ad.brand|urlencode }},{{ car_ad.model|urlencode }},car?lock={{ car_ad.pk }}" alt="{{ car_ad }}">
         {% else %}
-            <div class="placeholder-image">{{ car_ad.brand|first }}{{ car_ad.model|first }}</div>
+            <img src="https://loremflickr.com/960/600/{{ car_ad.brand|urlencode }},{{ car_ad.model|urlencode }},car?lock={{ car_ad.pk }}" alt="{{ car_ad }}">
         {% endif %}
     </a>
     <div class="card-body">

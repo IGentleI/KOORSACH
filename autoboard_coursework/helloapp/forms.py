@@ -139,10 +139,14 @@ class CarAdForm(BootstrapFormMixin, forms.ModelForm):
         self.fields['model'].widget.attrs['data-current-model'] = self.initial.get('model', '') or getattr(self.instance, 'model', '')
 
         selected_brand = self.data.get('brand') or self.initial.get('brand') or getattr(self.instance, 'brand', '')
-        model_choices = [('', 'Выберите модель')]
+        model_choices = [('', 'Сначала выберите марку')]
         if selected_brand in self.CAR_MODELS:
+            model_choices = [('', 'Выберите модель')]
             model_choices += [(model, model) for model in self.CAR_MODELS[selected_brand]]
         self.fields['model'].widget.choices = model_choices
+        self.fields['car_image'].required = not (self.instance.pk and self.instance.images.exists())
+        if self.fields['car_image'].required:
+            self.fields['car_image'].help_text = 'Загрузите фото, чтобы объявление не отображалось без изображения.'
 
         if self.user and self.user.is_authenticated and not self.initial:
             profile = getattr(self.user, 'profile', None)
@@ -164,9 +168,13 @@ class CarAdForm(BootstrapFormMixin, forms.ModelForm):
         cleaned = super().clean()
         min_year = 1980
         max_year = 2030
+        brand = cleaned.get('brand')
+        model = cleaned.get('model')
         year = cleaned.get('year')
         price = cleaned.get('price')
         mileage = cleaned.get('mileage')
+        if brand and model and model not in self.CAR_MODELS.get(brand, []):
+            self.add_error('model', 'Выберите модель из списка выбранной марки.')
         if year and not (min_year <= year <= max_year):
             self.add_error('year', f'Год должен быть от {min_year} до {max_year}.')
         if price is not None and price <= 0:
