@@ -9,7 +9,7 @@ from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db.models import Avg, Count, Q
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.encoding import force_str
@@ -26,6 +26,11 @@ User = get_user_model()
 PHONE_REGEXP = re.compile(r'^\+?[0-9\s()\-]{10,20}$')
 EMAIL_REGEXP = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$')
 
+
+def car_image_fallback(*args, **kwargs):
+    """Legacy no-op for old URL configs after photo automation was removed."""
+
+    raise Http404('Автоматические fallback-фотографии отключены.')
 
 
 def _in_group(user, group_name):
