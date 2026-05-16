@@ -143,6 +143,11 @@ class CarAdForm(BootstrapFormMixin, forms.ModelForm):
         if selected_brand in self.CAR_MODELS:
             model_choices = [('', 'Выберите модель')]
             model_choices += [(model, model) for model in self.CAR_MODELS[selected_brand]]
+        else:
+            model_choices += [
+                (brand, [(model, model) for model in models])
+                for brand, models in self.CAR_MODELS.items()
+            ]
         self.fields['model'].widget.choices = model_choices
         if selected_brand in self.CAR_MODELS:
             self.fields['model'].widget.attrs.pop('disabled', None)

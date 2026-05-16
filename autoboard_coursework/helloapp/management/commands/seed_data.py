@@ -3,6 +3,7 @@ from random import choice
 from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
+from PIL import Image, ImageDraw, ImageFont
 
 from helloapp.models import CarAd, CarTag, SellerInfo
 

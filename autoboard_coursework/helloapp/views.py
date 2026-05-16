@@ -1,4 +1,6 @@
 import re
+from hashlib import md5
+from html import escape
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
