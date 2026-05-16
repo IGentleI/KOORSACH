@@ -7,7 +7,7 @@
 | ООП | Django models, forms, management command |
 | 5+ таблиц | `Profile`, `SellerInfo`, `CarAd`, `CarImage`, `CarTag`, `Favorite`, `Message`, `Review` |
 | PostgreSQL | `settings.py`, `docker-compose.yml`, `.env.example` |
-| Разные группы пользователей | `Buyer`, `Seller`, `Moderator` в `seed_data.py` и `views.py` |
+| Разные группы пользователей | `Buyer`, `Seller`, `Moderator` в `seed_data.py`; группам назначены Django permissions, а доступ в `views.py` разделён для покупателя, продавца и модератора |
 | Подтверждение регистрации | `register`, `activate`, `tokens.py` |
 | Расширение User | модель `Profile` + signals |
 | Формы не из админки | регистрация, профиль, объявление, сообщение продавцу, отзыв |
@@ -20,3 +20,7 @@
 | Cache | `index`, `ajax_car_ad_stats` |
 | JavaScript | `static/helloapp/js/main.js` |
 | Адаптивный дизайн | `static/helloapp/css/style.css` |
+
+## Визуальное оформление
+
+Фон сделан простым белым, без сложных декоративных градиентов и размытия, чтобы интерфейс выглядел как обычный учебный сайт.
