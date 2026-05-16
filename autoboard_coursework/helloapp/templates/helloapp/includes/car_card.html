@@ -1,9 +1,10 @@
+{% url 'helloapp:car_image_fallback' car_ad.brand car_ad.model car_ad.pk as fallback_image_url %}
 <article class="card car-card">
     <a href="{{ car_ad.get_absolute_url }}" class="car-image">
         {% if car_ad.main_image and car_ad.main_image.image %}
-            <img src="{{ car_ad.main_image.image.url }}" data-fallback-src="https://loremflickr.com/960/600/{{ car_ad.brand|urlencode }},{{ car_ad.model|urlencode }},car?lock={{ car_ad.pk }}" alt="{{ car_ad }}">
+            <img src="{{ car_ad.main_image.image.url }}" data-fallback-src="{{ fallback_image_url }}" onerror="this.onerror=null;this.src='{{ fallback_image_url }}';" alt="{{ car_ad }}">
         {% else %}
-            <img src="https://loremflickr.com/960/600/{{ car_ad.brand|urlencode }},{{ car_ad.model|urlencode }},car?lock={{ car_ad.pk }}" alt="{{ car_ad }}">
+            <img src="{{ fallback_image_url }}" alt="{{ car_ad }}">
         {% endif %}
     </a>
     <div class="card-body">

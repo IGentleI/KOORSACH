@@ -7,6 +7,7 @@ app_name = 'helloapp'
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('fallback-car-image/<str:brand>/<str:model>/<int:seed>.svg', views.car_image_fallback, name='car_image_fallback'),
 
     path('register/', views.register, name='register'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
