@@ -1,9 +1,8 @@
 {% extends 'helloapp/base.html' %}
-{% block title %}AutoBoard — объявления автомобилей{% endblock %}
+{% block title %}АристоКар — объявления автомобилей{% endblock %}
 {% block content %}
 <section class="hero">
     <div>
-        <p class="eyebrow">Django + PostgreSQL</p>
         <h1>Сервис объявлений о продаже автомобилей</h1>
         <p>Публикуйте объявления, ищите автомобили по параметрам, сохраняйте варианты в избранное и связывайтесь с продавцами.</p>
         <div class="hero-actions">
@@ -44,12 +43,10 @@
     {% for car_ad in latest_ads %}
         {% include 'helloapp/includes/car_card.html' with car_ad=car_ad %}
     {% empty %}
-        <p class="empty">После запуска seed-команды здесь появятся объявления.</p>
     {% endfor %}
 </div>
 
 <section class="tags-cloud">
-    <h2>Популярные теги</h2>
     {% for tag in popular_tags %}
         <a class="tag" href="{% url 'helloapp:car_ad_list' %}?tag={{ tag.slug }}">{{ tag.name }}</a>
     {% endfor %}

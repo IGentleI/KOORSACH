@@ -4,13 +4,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}AutoBoard{% endblock %}</title>
+    <title>{% block title %}АристоКар{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'helloapp/css/style.css' %}">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
 <header class="site-header">
-    <a class="logo" href="{% url 'helloapp:index' %}">AutoBoard</a>
+    <a class="logo" href="{% url 'helloapp:index' %}">АристоКар</a>
     <button class="burger" type="button" aria-label="Меню" data-menu-toggle>☰</button>
     <nav class="main-nav" data-menu>
         <a href="{% url 'helloapp:car_ad_list' %}">Каталог</a>
@@ -40,9 +40,7 @@
     {% block content %}{% endblock %}
 </main>
 
-<footer class="footer">
-    <p>AutoBoard — курсовая работа по технологиям программирования на Django.</p>
-</footer>
+
 <script src="{% static 'helloapp/js/main.js' %}?v=20260516-models-images"></script>
 {% block extra_js %}{% endblock %}
 </body>

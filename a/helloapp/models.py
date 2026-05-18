@@ -5,7 +5,6 @@ from django.urls import reverse
 
 
 class Profile(models.Model):
-    """Расширение базовой модели пользователя для критерия оценки 5."""
 
     ROLE_CHOICES = [
         ('buyer', 'Покупатель'),
